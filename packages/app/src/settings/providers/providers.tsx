@@ -16,6 +16,7 @@ import { useServerSDK } from "@/runtime/server/client"
 import { formatServerError } from "@/runtime/server/errors"
 import { CONSOLE_INTEGRATION } from "@/providers/connect/dialog-machine"
 import { DialogConnectProvider, useProviderConnectController } from "@/providers/connect/dialog"
+import { DialogEditProvider } from "@/providers/edit/dialog"
 import { ProviderModelIcon } from "@/providers/models/provider-group"
 import { SettingsList } from "@/settings/list"
 import { activeProviderAccount, providerAccounts, type ProviderAccount } from "./accounts"
@@ -181,6 +182,18 @@ export const SettingsProviders: Component<{
   // The list stays as it was while the dialog connects, so a new sign-in that briefly drops the
   // Console workspace providers from the catalog can't flash rows behind the dialog.
   const connect = (provider?: string) => dispatch({ type: "dialog.opened", provider, catalog: untrack(available) })
+
+  const editProvider = (providerID?: string, autoFetch = false) => {
+    void dialog.show(() => (
+      <DialogEditProvider
+        providerID={providerID}
+        directory={props.directory}
+        defaultLocation={props.directory === undefined}
+        autoFetch={autoFetch}
+        onSaved={(id) => dispatch({ type: "provider.reconnected", providerID: id })}
+      />
+    ))
+  }
 
   const liveAvailable = createMemo(() => {
     const connected = providers.connected()
@@ -482,13 +495,20 @@ export const SettingsProviders: Component<{
             <h2 class="settings-tab-title">{language.t("settings.providers.title")}</h2>
             <span class="text-11-regular text-v2-text-text-muted">{language.t("settings.providers.description")}</span>
           </div>
-          <div class="settings-tab-header-actions">{props.headerAction}</div>
+          <div class="settings-tab-header-actions flex items-center gap-2">
+            <Button size="normal" variant="neutral" icon="plus" onClick={() => editProvider()}>
+              {language.t("settings.providers.addCustom")}
+            </Button>
+            {props.headerAction}
+          </div>
         </div>
       </div>
 
       <div class="settings-tab-body settings-tab-body--sectioned settings-providers">
         <div class="settings-section" data-component="connected-providers-section">
-          <h3 class="settings-section-title">{language.t("settings.providers.section.connected")}</h3>
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="settings-section-title">{language.t("settings.providers.section.connected")}</h3>
+          </div>
           <SettingsList variant="catalog">
             <Show
               when={displayed().length > 0}
@@ -511,38 +531,49 @@ export const SettingsProviders: Component<{
                               <Badge>{type(item)}</Badge>
                             </div>
                           </div>
-                          <Show
-                            when={canManageAccounts(item)}
-                            fallback={
-                              <Show
-                                when={canDisconnect(item)}
-                                fallback={
-                                  <span class="settings-provider-env-hint">
-                                    {language.t("settings.providers.connected.environmentDescription")}
-                                  </span>
-                                }
-                              >
-                                <Button size="normal" variant="ghost-muted" onClick={() => disconnect(item, item.name)}>
-                                  {language.t("common.disconnect")}
-                                </Button>
+                          <div class="flex shrink-0 items-center gap-1">
+                            <Button
+                              size="normal"
+                              variant="ghost-muted"
+                              icon="refresh"
+                              onClick={() => editProvider(item.id, true)}
+                            >
+                              {language.t("provider.edit.fetch.short")}
+                            </Button>
+                            <Button
+                              size="normal"
+                              variant="ghost-muted"
+                              icon="edit"
+                              onClick={() => editProvider(item.id, false)}
+                            >
+                              {language.t("common.edit")}
+                            </Button>
+                            <Show
+                              when={canManageAccounts(item)}
+                              fallback={
+                                <Show when={canDisconnect(item)}>
+                                  <Button size="normal" variant="ghost-muted" onClick={() => disconnect(item, item.name)}>
+                                    {language.t("common.disconnect")}
+                                  </Button>
+                                </Show>
+                              }
+                            >
+                              <Show when={activeProviderAccount(integration(item))?.status}>
+                                {(status) => (
+                                  <Button
+                                    size="normal"
+                                    variant="ghost-muted"
+                                    class="text-[var(--v2-state-fg-warning)]"
+                                    title={status().message}
+                                    onClick={() => connect(item.id)}
+                                  >
+                                    {language.t("dialog.provider.needsSignIn")}
+                                  </Button>
+                                )}
                               </Show>
-                            }
-                          >
-                            <Show when={activeProviderAccount(integration(item))?.status}>
-                              {(status) => (
-                                <Button
-                                  size="normal"
-                                  variant="ghost-muted"
-                                  class="text-[var(--v2-state-fg-warning)]"
-                                  title={status().message}
-                                  onClick={() => connect(item.id)}
-                                >
-                                  {language.t("dialog.provider.needsSignIn")}
-                                </Button>
-                              )}
+                              <AccountMenu provider={item} />
                             </Show>
-                            <AccountMenu provider={item} />
-                          </Show>
+                          </div>
                         </div>
                       }
                     >

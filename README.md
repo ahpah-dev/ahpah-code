@@ -1,13 +1,19 @@
+<h1 align="center">AhPah Code</h1>
+<p align="center">A pixelated fork of OpenCode Desktop with Fetch Models &amp; post-add provider editing. Released under the <a href="LICENSE">MIT License</a>.</p>
+
 <p align="center">
-  <a href="https://opencode.ai">
-    <picture>
-      <source srcset=".github/assets/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
-      <source srcset=".github/assets/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src=".github/assets/logo-ornate-light.svg" alt="OpenCode logo">
-    </picture>
-  </a>
+  <a href="https://github.com/ahpah-dev/ahpah-code/blob/dev/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" /></a>
 </p>
-<p align="center">The open source AI coding agent.</p>
+
+### What's New in AhPah Code
+
+- **AhPah Code Branding**: Rebranded desktop windows, splash screen, interactive New Session pin-board wordmark, native menus, and background service (`AhPah Code Service`).
+- **Fetch Models & Provider Editing**: Fetch live model lists directly from provider endpoints (`/models`, `/v1/models`, Anthropic, Gemini, Ollama `/api/tags`) and edit any added or custom provider afterwards (change Base URL, SDK package, API key, add/edit/remove models).
+- **Pixelated Theme**: Sharper pixel-corner geometry, stepped pixel elevation shadows, crisp 1px borders, and dot-matrix empty-state textures.
+
+---
+
+> Upstream OpenCode README follows below:
 <p align="center">
   <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
   <a href="https://www.npmjs.com/package/@opencode/cli"><img alt="npm" src="https://img.shields.io/npm/v/@opencode/cli?style=flat-square" /></a>

@@ -6,6 +6,7 @@ import { isDeepStrictEqual } from "node:util"
 import { applyEdits, modify, type ParseError, parse } from "jsonc-parser"
 import { Context, Effect, FiberMap, Layer, Option, PubSub, Ref, Schema, Semaphore, Stream } from "effect"
 import { Directory, Document, Info, type Patch, type Entry, Event } from "@opencode/schema/config"
+import type { Provider as ProviderSchema } from "@opencode/schema/provider"
 import { Credential } from "./credential.js"
 import { Bus } from "./bus.js"
 import { Watcher } from "./filesystem/watcher.js"
@@ -46,6 +47,10 @@ export interface Interface {
   readonly changes: () => Stream.Stream<Watcher.Update>
   /** Updates supported global config fields while preserving unrelated JSONC content. */
   readonly update?: (patch: Patch) => Effect.Effect<void, FSUtil.Error>
+  /** Creates or updates a provider entry in global config while preserving unrelated JSONC content. */
+  readonly saveProvider?: (providerID: string, save: ProviderSchema.ConfigSave) => Effect.Effect<void, FSUtil.Error>
+  /** Removes a provider entry from global config while preserving unrelated JSONC content. */
+  readonly removeProvider?: (providerID: string) => Effect.Effect<void, FSUtil.Error>
   /**
    * Replaces, or clears with `undefined`, the document an integration connection contributes. It loads right after
    * managed policies: its settings layer below remote, user, and project config, while its policies outrank theirs.
@@ -466,25 +471,191 @@ export const layer = (options?: Options) =>
       )
       yield* reloadLock.withPermit(reconcile(initial))
 
+      const globalConfigFile = Effect.fnUntraced(function* () {
+        const directory = initial.global ?? AbsolutePath.make(globalService.config)
+        const candidates = ConfigDiscovery.names.map((name) => path.join(directory, name))
+        return (yield* Effect.filter(candidates, fs.isFile)).at(-1) ?? path.join(directory, "opencode.jsonc")
+      })
+
+      const editGlobalConfig = Effect.fnUntraced(function* (
+        method: string,
+        mutate: (text: string, parsed: Record<string, unknown>) => string,
+      ) {
+        const filepath = yield* globalConfigFile()
+        const text = (yield* fs.readFileStringSafe(filepath)) ?? "{}\n"
+        const updated = yield* Effect.try({
+          try: () => {
+            const errors: ParseError[] = []
+            const raw: unknown = parse(text, errors, { allowTrailingComma: true })
+            const parsed =
+              raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {}
+            return mutate(text, parsed)
+          },
+          catch: (cause) => new FSUtil.FileSystemError({ method, cause }),
+        })
+        yield* fs.writeWithDirs(filepath, updated.endsWith("\n") ? updated : `${updated}\n`)
+        yield* reload().pipe(
+          Effect.provide(context),
+          Effect.catchCause((cause) => Effect.logError("failed to reload config", { cause })),
+        )
+      })
+
       const update = Effect.fn("Config.update")(
         function* (patch: Patch) {
-          const directory = initial.global ?? AbsolutePath.make(globalService.config)
-          const candidates = ConfigDiscovery.names.map((name) => path.join(directory, name))
-          const filepath =
-            (yield* Effect.filter(candidates, fs.isFile)).at(-1) ?? path.join(directory, "opencode.jsonc")
-          const text = (yield* fs.readFileStringSafe(filepath)) ?? "{}\n"
-          const updated = yield* Effect.try({
-            try: () =>
-              applyEdits(
-                text,
-                modify(text, ["shell"], patch.shell ?? undefined, {
-                  formattingOptions: { tabSize: 2, insertSpaces: true },
-                }),
-              ),
-            catch: (cause) => new FSUtil.FileSystemError({ method: "config.update", cause }),
+          yield* editGlobalConfig("config.update", (text) =>
+            applyEdits(
+              text,
+              modify(text, ["shell"], patch.shell ?? undefined, {
+                formattingOptions: { tabSize: 2, insertSpaces: true },
+              }),
+            ),
+          )
+        },
+        (effect) => updateLock.withPermit(effect),
+      )
+
+      const saveProvider = Effect.fn("Config.saveProvider")(
+        function* (providerID: string, save: ProviderSchema.ConfigSave) {
+          yield* editGlobalConfig("config.saveProvider", (text, parsed) => {
+            const providersRaw = parsed.providers
+            const providersMap =
+              providersRaw && typeof providersRaw === "object" && !Array.isArray(providersRaw)
+                ? (providersRaw as Record<string, unknown>)
+                : {}
+            const existingRaw = providersMap[providerID]
+            const existing =
+              existingRaw && typeof existingRaw === "object" && !Array.isArray(existingRaw)
+                ? { ...(existingRaw as Record<string, unknown>) }
+                : {}
+
+            if (save.name !== undefined) {
+              if (save.name.trim()) existing.name = save.name.trim()
+              else delete existing.name
+            }
+            if (save.package !== undefined) {
+              if (save.package.trim()) existing.package = save.package.trim()
+              else delete existing.package
+            }
+
+            const prevSettings =
+              existing.settings && typeof existing.settings === "object" && !Array.isArray(existing.settings)
+                ? { ...(existing.settings as Record<string, unknown>) }
+                : {}
+            if (save.baseURL === null) {
+              delete prevSettings.baseURL
+            } else if (typeof save.baseURL === "string") {
+              if (save.baseURL.trim()) prevSettings.baseURL = save.baseURL.trim()
+              else delete prevSettings.baseURL
+            }
+            if (save.apiKey === null) {
+              delete prevSettings.apiKey
+            }
+            if (Object.keys(prevSettings).length > 0) existing.settings = prevSettings
+            else delete existing.settings
+
+            if (save.headers === null) {
+              delete existing.headers
+            } else if (save.headers !== undefined) {
+              const cleaned = Object.fromEntries(
+                Object.entries(save.headers).filter(([k, v]) => k.trim() && v !== undefined),
+              )
+              if (Object.keys(cleaned).length > 0) existing.headers = cleaned
+              else delete existing.headers
+            }
+
+            if (save.models !== undefined) {
+              const prevModels =
+                !save.replaceModels &&
+                existing.models &&
+                typeof existing.models === "object" &&
+                !Array.isArray(existing.models)
+                  ? { ...(existing.models as Record<string, unknown>) }
+                  : {}
+              const existingModelsAll =
+                existing.models && typeof existing.models === "object" && !Array.isArray(existing.models)
+                  ? (existing.models as Record<string, unknown>)
+                  : {}
+
+              for (const model of save.models) {
+                const id = model.id.trim()
+                if (!id) continue
+                const baseRaw = existingModelsAll[id]
+                const entry =
+                  baseRaw && typeof baseRaw === "object" && !Array.isArray(baseRaw)
+                    ? { ...(baseRaw as Record<string, unknown>) }
+                    : {}
+
+                if (model.name !== undefined) {
+                  if (model.name.trim()) entry.name = model.name.trim()
+                  else delete entry.name
+                }
+                if (model.modelID !== undefined) {
+                  if (model.modelID.trim()) entry.modelID = model.modelID.trim()
+                  else delete entry.modelID
+                }
+                if (model.disabled !== undefined) {
+                  if (model.disabled) entry.disabled = true
+                  else delete entry.disabled
+                }
+                if (model.context !== undefined || model.output !== undefined) {
+                  const prevLimit =
+                    entry.limit && typeof entry.limit === "object" && !Array.isArray(entry.limit)
+                      ? { ...(entry.limit as Record<string, unknown>) }
+                      : {}
+                  if (model.context !== undefined) {
+                    if (model.context > 0) prevLimit.context = model.context
+                    else delete prevLimit.context
+                  }
+                  if (model.output !== undefined) {
+                    if (model.output > 0) prevLimit.output = model.output
+                    else delete prevLimit.output
+                  }
+                  if (Object.keys(prevLimit).length > 0) entry.limit = prevLimit
+                  else delete entry.limit
+                }
+                if (model.tools !== undefined || model.vision !== undefined || model.reasoning !== undefined) {
+                  const prevCaps =
+                    entry.capabilities && typeof entry.capabilities === "object" && !Array.isArray(entry.capabilities)
+                      ? { ...(entry.capabilities as Record<string, unknown>) }
+                      : {}
+                  if (model.tools !== undefined) prevCaps.tools = model.tools
+                  if (model.vision !== undefined) prevCaps.input = model.vision ? ["text", "image"] : ["text"]
+                  if (model.reasoning !== undefined) {
+                    prevCaps.reasoning = model.reasoning ? { supported: true, toggle: true } : { supported: false }
+                  }
+                  if (Object.keys(prevCaps).length > 0) entry.capabilities = prevCaps
+                  else delete entry.capabilities
+                }
+
+                prevModels[id] = entry
+              }
+
+              if (Object.keys(prevModels).length > 0) existing.models = prevModels
+              else delete existing.models
+            }
+
+            const value = Object.keys(existing).length > 0 ? existing : undefined
+            return applyEdits(
+              text,
+              modify(text, ["providers", providerID], value, {
+                formattingOptions: { tabSize: 2, insertSpaces: true },
+              }),
+            )
           })
-          yield* fs.writeWithDirs(filepath, updated.endsWith("\n") ? updated : `${updated}\n`)
-          yield* requestReload
+        },
+        (effect) => updateLock.withPermit(effect),
+      )
+
+      const removeProvider = Effect.fn("Config.removeProvider")(
+        function* (providerID: string) {
+          yield* editGlobalConfig("config.removeProvider", (text) =>
+            applyEdits(
+              text,
+              modify(text, ["providers", providerID], undefined, {
+                formattingOptions: { tabSize: 2, insertSpaces: true },
+              }),
+            ),
+          )
         },
         (effect) => updateLock.withPermit(effect),
       )
@@ -500,6 +671,8 @@ export const layer = (options?: Options) =>
           }),
         changes: () => Stream.fromPubSub(updates),
         update,
+        saveProvider,
+        removeProvider,
         integration: Effect.fn("Config.integration")(function* (integrationID, document) {
           if (isDeepStrictEqual(integrations.get(integrationID), document)) return
           integrations.delete(integrationID)

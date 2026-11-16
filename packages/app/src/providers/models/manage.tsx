@@ -11,6 +11,7 @@ import { popularProviders } from "@/providers/catalog/providers"
 import { useLanguage } from "@/runtime/i18n/language"
 import { useDialog } from "@opencode/ui/context/dialog"
 import { DialogConnectProvider } from "@/providers/connect/dialog"
+import { DialogEditProvider } from "@/providers/edit/dialog"
 import { decode64 } from "@/runtime/persistence/base64"
 import { consoleModelGroup, ProviderModelSections } from "@/providers/models/provider-group"
 import "@/settings/settings.css"
@@ -158,6 +159,20 @@ export const DialogManageModels: Component = () => {
                   managed={managed()}
                   expanded={expanded}
                   disabled={searching()}
+                  action={(group) => (
+                    <Button
+                      size="small"
+                      variant="ghost-muted"
+                      icon="refresh"
+                      onClick={() =>
+                        void dialog.show(() => (
+                          <DialogEditProvider providerID={group.category} directory={directory()} autoFetch />
+                        ))
+                      }
+                    >
+                      {language.t("provider.edit.fetch.short")}
+                    </Button>
+                  )}
                   onExpandedChange={(key, value) => setStore("collapsed", key, !value)}
                   onSetVisibility={setProviderVisibility}
                   action={(group) => (

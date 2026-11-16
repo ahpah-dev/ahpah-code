@@ -28,7 +28,7 @@ export async function prepareDevElectron() {
   const plist = join(bundle, "Contents/Info.plist")
 
   for (const key of ["CFBundleName", "CFBundleDisplayName"]) {
-    await $`plutil -replace ${key} -string ${"OpenCode Dev"} ${plist}`
+    await $`plutil -replace ${key} -string ${"AhPah Code Dev"} ${plist}`
   }
 
   await $`plutil -replace CFBundleIdentifier -string ai.opencode.desktop.dev ${plist}`

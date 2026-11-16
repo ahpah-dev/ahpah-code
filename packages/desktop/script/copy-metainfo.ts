@@ -6,7 +6,7 @@ const channel = arg === "dev" || arg === "beta" || arg === "prod" ? arg : resolv
 
 const appId = channel === "prod" ? "ai.opencode.desktop" : `ai.opencode.desktop.${channel}`
 
-const productName = channel === "prod" ? "OpenCode" : `OpenCode ${channel.charAt(0).toUpperCase() + channel.slice(1)}`
+const productName = channel === "prod" ? "AhPah Code" : `AhPah Code ${channel.charAt(0).toUpperCase() + channel.slice(1)}`
 
 const summary = `Open source AI coding agent${channel !== "prod" ? ` (${channel})` : ""}`
 
@@ -20,13 +20,13 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
   <name>${productName}</name>
   <summary>${summary}</summary>
 
-  <developer id="ly.anoma">
-    <name>Anomaly Innovations Inc.</name>
+  <developer id="dev.ahpah">
+    <name>AhPah Code Contributors</name>
   </developer>
 
   <description>
     <p>
-      OpenCode is an open source agent that helps you write and run code with any AI model.
+      AhPah Code is a pixelated open source coding agent fork of OpenCode with provider editing and model fetching.
     </p>
   </description>
 
@@ -34,9 +34,9 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
 
   <content_rating type="oars-1.1" />
 
-  <url type="bugtracker">https://github.com/anomalyco/opencode/issues</url>
-  <url type="homepage">https://opencode.ai</url>
-  <url type="vcs-browser">https://github.com/anomalyco/opencode</url>
+  <url type="bugtracker">https://github.com/ahpah-dev/ahpah-code/issues</url>
+  <url type="homepage">https://github.com/ahpah-dev/ahpah-code</url>
+  <url type="vcs-browser">https://github.com/ahpah-dev/ahpah-code</url>
 
   <screenshots>
     <screenshot type="default">

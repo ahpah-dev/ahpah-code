@@ -46,6 +46,7 @@ export const run = Effect.fnUntraced(function* (options: Options) {
 })
 
 const processEffect = Effect.fnUntraced(function* (options: Options) {
+  process.title = options.mode === "service" ? "AhPah Code Service" : "AhPah Code"
   const inherited = process.env.OPENCODE_PTY_HANDOFF
   delete process.env.OPENCODE_PTY_HANDOFF
   const handoff =

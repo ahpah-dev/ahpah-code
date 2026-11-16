@@ -1,4 +1,6 @@
 import { useFilteredList } from "@opencode/ui/hooks"
+import { Button } from "@opencode/ui/button"
+import { useDialog } from "@opencode/ui/context/dialog"
 import { Switch } from "@opencode/ui/switch"
 import {
   type Component,
@@ -25,6 +27,7 @@ import { CONSOLE_GROUP_KEY, consoleModelGroup, ProviderModelSections } from "@/p
 import { SettingsSearchEmpty } from "@/settings/search-empty"
 import { SettingsSearchField } from "@/settings/search-field"
 import { settingsScroller } from "@/settings/scroller"
+import { DialogEditProvider } from "@/providers/edit/dialog"
 import {
   createModelsRevealState,
   revealingModelProvider,
@@ -48,6 +51,7 @@ export const SettingsModels: Component<{
   onConsumeTarget?: () => void
   headerAction?: JSX.Element
 }> = (props) => {
+  const dialog = useDialog()
   const language = useLanguage()
   const models = useModels()
   const serverSdk = useServerSDK()
@@ -250,6 +254,20 @@ export const SettingsModels: Component<{
               disabled={searching()}
               onExpandedChange={(key, value) => setStore("collapsed", key, !value)}
               onSetVisibility={setProviderVisibility}
+              action={(group) => (
+                <Button
+                  size="small"
+                  variant="ghost-muted"
+                  icon="refresh"
+                  onClick={() =>
+                    void dialog.show(() => (
+                      <DialogEditProvider providerID={group.category} defaultLocation autoFetch />
+                    ))
+                  }
+                >
+                  {language.t("provider.edit.fetch.short")}
+                </Button>
+              )}
               ref={(providerID, element) => {
                 sections.set(providerID, element)
                 // A ref runs before the section joins the document.

@@ -318,6 +318,14 @@ import type {
   ConfigGetInput,
   ConfigGetOutput,
   ConfigShellsOutput,
+  ConfigFetchProviderModelsInput,
+  ConfigFetchProviderModelsOutput,
+  ConfigGetProviderInput,
+  ConfigGetProviderOutput,
+  ConfigSaveProviderInput,
+  ConfigSaveProviderOutput,
+  ConfigRemoveProviderInput,
+  ConfigRemoveProviderOutput,
   ExperimentalConfigUpdateInput,
   ExperimentalConfigUpdateOutput,
 } from "./types.js"
@@ -2684,6 +2692,70 @@ export function make(options: ClientOptions) {
             successStatus: 200,
             declaredStatuses: [400, 401, 404],
             empty: false,
+          },
+          requestOptions,
+        ),
+      fetchProviderModels: (input: ConfigFetchProviderModelsInput, requestOptions?: RequestOptions) =>
+        request<ConfigFetchProviderModelsOutput>(
+          {
+            method: "POST",
+            path: `/api/provider/fetch-models`,
+            query: { location: input["location"] },
+            body: {
+              providerID: input["providerID"],
+              baseURL: input["baseURL"],
+              apiKey: input["apiKey"],
+              package: input["package"],
+              headers: input["headers"],
+            },
+            successStatus: 200,
+            declaredStatuses: [400, 401, 404, 503],
+            empty: false,
+          },
+          requestOptions,
+        ),
+      getProvider: (input: ConfigGetProviderInput, requestOptions?: RequestOptions) =>
+        request<ConfigGetProviderOutput>(
+          {
+            method: "GET",
+            path: `/api/provider/${encodeURIComponent(input.providerID)}/config`,
+            query: { location: input["location"] },
+            successStatus: 200,
+            declaredStatuses: [400, 401, 404, 503],
+            empty: false,
+          },
+          requestOptions,
+        ),
+      saveProvider: (input: ConfigSaveProviderInput, requestOptions?: RequestOptions) =>
+        request<ConfigSaveProviderOutput>(
+          {
+            method: "PUT",
+            path: `/api/provider/${encodeURIComponent(input.providerID)}/config`,
+            query: { location: input["location"] },
+            body: {
+              name: input["name"],
+              package: input["package"],
+              baseURL: input["baseURL"],
+              apiKey: input["apiKey"],
+              headers: input["headers"],
+              models: input["models"],
+              replaceModels: input["replaceModels"],
+            },
+            successStatus: 200,
+            declaredStatuses: [400, 401, 404, 503],
+            empty: false,
+          },
+          requestOptions,
+        ),
+      removeProvider: (input: ConfigRemoveProviderInput, requestOptions?: RequestOptions) =>
+        request<ConfigRemoveProviderOutput>(
+          {
+            method: "DELETE",
+            path: `/api/provider/${encodeURIComponent(input.providerID)}/config`,
+            query: { location: input["location"] },
+            successStatus: 204,
+            declaredStatuses: [400, 401, 404, 503],
+            empty: true,
           },
           requestOptions,
         ),

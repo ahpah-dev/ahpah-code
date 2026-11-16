@@ -134,3 +134,67 @@ export const Info = Schema.Struct({
       empty: (id: ID): Info => ({ id, name: id, activation: "auto", package: "" }),
     })),
   )
+
+export const FetchedModel = Schema.Struct({
+  id: Schema.String,
+  name: Schema.optional(Schema.String),
+  ownedBy: Schema.optional(Schema.String),
+  context: Schema.optional(Schema.Int),
+  output: Schema.optional(Schema.Int),
+  tools: Schema.optional(Schema.Boolean),
+  vision: Schema.optional(Schema.Boolean),
+  reasoning: Schema.optional(Schema.Boolean),
+}).annotate({ identifier: "Provider.FetchedModel" })
+export type FetchedModel = typeof FetchedModel.Type
+
+export const FetchModelsRequest = Schema.Struct({
+  providerID: Schema.optional(ID),
+  baseURL: Schema.String,
+  apiKey: Schema.optional(Schema.String),
+  package: Schema.optional(Schema.String),
+  headers: Schema.optional(Schema.Record(Schema.String, Schema.String)),
+}).annotate({ identifier: "Provider.FetchModelsRequest" })
+export type FetchModelsRequest = typeof FetchModelsRequest.Type
+
+export const FetchModelsResponse = Schema.Struct({
+  endpoint: Schema.String,
+  models: Schema.Array(FetchedModel),
+}).annotate({ identifier: "Provider.FetchModelsResponse" })
+export type FetchModelsResponse = typeof FetchModelsResponse.Type
+
+export const ConfigModel = Schema.Struct({
+  id: Schema.String,
+  name: Schema.optional(Schema.String),
+  modelID: Schema.optional(Schema.String),
+  context: Schema.optional(Schema.Int),
+  output: Schema.optional(Schema.Int),
+  tools: Schema.optional(Schema.Boolean),
+  vision: Schema.optional(Schema.Boolean),
+  reasoning: Schema.optional(Schema.Boolean),
+  disabled: Schema.optional(Schema.Boolean),
+}).annotate({ identifier: "Provider.ConfigModel" })
+export type ConfigModel = typeof ConfigModel.Type
+
+export const ConfigSave = Schema.Struct({
+  name: Schema.optional(Schema.String),
+  package: Schema.optional(Schema.String),
+  baseURL: Schema.optional(Schema.NullOr(Schema.String)),
+  apiKey: Schema.optional(Schema.NullOr(Schema.String)),
+  headers: Schema.optional(Schema.NullOr(Schema.Record(Schema.String, Schema.String))),
+  models: Schema.optional(Schema.Array(ConfigModel)),
+  replaceModels: Schema.optional(Schema.Boolean),
+}).annotate({ identifier: "Provider.ConfigSave" })
+export type ConfigSave = typeof ConfigSave.Type
+
+export const ConfigState = Schema.Struct({
+  providerID: ID,
+  name: Schema.String,
+  package: Schema.String,
+  baseURL: Schema.optional(Schema.String),
+  defaultBaseURL: Schema.optional(Schema.String),
+  headers: Schema.optional(Schema.Record(Schema.String, Schema.String)),
+  hasCredential: Schema.Boolean,
+  hasConfig: Schema.Boolean,
+  models: Schema.Array(ConfigModel),
+}).annotate({ identifier: "Provider.ConfigState" })
+export type ConfigState = typeof ConfigState.Type

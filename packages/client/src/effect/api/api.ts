@@ -2799,9 +2799,63 @@ export type ConfigShellsOutput = ReadonlyArray<{
 }>
 export type ConfigShellsOperation<E = never> = () => Effect.Effect<ConfigShellsOutput, E>
 
+export type ConfigFetchProviderModelsInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly providerID?: Provider.ID | undefined
+  readonly baseURL: string
+  readonly apiKey?: string | undefined
+  readonly package?: string | undefined
+  readonly headers?: { readonly [x: string]: string } | undefined
+}
+export type ConfigFetchProviderModelsOutput = {
+  readonly location: Location.PublicRef
+  readonly data: Provider.FetchModelsResponse
+}
+export type ConfigFetchProviderModelsOperation<E = never> = (
+  input: ConfigFetchProviderModelsInput,
+) => Effect.Effect<ConfigFetchProviderModelsOutput, E>
+
+export type ConfigGetProviderInput = {
+  readonly providerID: Provider.ID
+  readonly location?: { readonly directory?: string | undefined } | undefined
+}
+export type ConfigGetProviderOutput = { readonly location: Location.PublicRef; readonly data: Provider.ConfigState }
+export type ConfigGetProviderOperation<E = never> = (
+  input: ConfigGetProviderInput,
+) => Effect.Effect<ConfigGetProviderOutput, E>
+
+export type ConfigSaveProviderInput = {
+  readonly providerID: Provider.ID
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly name?: string | undefined
+  readonly package?: string | undefined
+  readonly baseURL?: string | null | undefined
+  readonly apiKey?: string | null | undefined
+  readonly headers?: { readonly [x: string]: string } | null | undefined
+  readonly models?: ReadonlyArray<Provider.ConfigModel> | undefined
+  readonly replaceModels?: boolean | undefined
+}
+export type ConfigSaveProviderOutput = { readonly location: Location.PublicRef; readonly data: Provider.ConfigState }
+export type ConfigSaveProviderOperation<E = never> = (
+  input: ConfigSaveProviderInput,
+) => Effect.Effect<ConfigSaveProviderOutput, E>
+
+export type ConfigRemoveProviderInput = {
+  readonly providerID: Provider.ID
+  readonly location?: { readonly directory?: string | undefined } | undefined
+}
+export type ConfigRemoveProviderOutput = void
+export type ConfigRemoveProviderOperation<E = never> = (
+  input: ConfigRemoveProviderInput,
+) => Effect.Effect<ConfigRemoveProviderOutput, E>
+
 export interface ConfigApi<E = never> {
   readonly get: ConfigGetOperation<E>
   readonly shells: ConfigShellsOperation<E>
+  readonly fetchProviderModels: ConfigFetchProviderModelsOperation<E>
+  readonly getProvider: ConfigGetProviderOperation<E>
+  readonly saveProvider: ConfigSaveProviderOperation<E>
+  readonly removeProvider: ConfigRemoveProviderOperation<E>
 
   /** @deprecated Use `client.experimental.config.update`. Removed in the next minor. */
   readonly update: ExperimentalConfigUpdateOperation<E>

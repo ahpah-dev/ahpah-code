@@ -40,6 +40,7 @@ import { IconButton } from "@opencode/ui/icon-button"
 import { Menu } from "@opencode/ui/menu"
 import { writeClipboard } from "@opencode/session-ui/copy"
 import { showToast } from "@/shell/notifications/toast"
+import { DialogEditProvider } from "@/providers/edit/dialog"
 import "@/shell/search-list.css"
 import "./models.css"
 
@@ -296,6 +297,7 @@ const METHOD_ICON = {
 const POPULAR = ["opencode", "opencode-go", "openai", "github-copilot", "anthropic", "google"]
 
 function ProviderPicker(props: { directory?: string; onSelect: (provider: string) => void; onPrepare?: () => void }) {
+  const dialog = useDialog()
   const integrations = useIntegrations(() => props.directory)
   const language = useLanguage()
 
@@ -398,6 +400,19 @@ function ProviderPicker(props: { directory?: string; onSelect: (provider: string
       </div>
       <div class="relative flex min-h-0 flex-1 flex-col">
         <div class="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto pb-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <button
+            type="button"
+            data-action="add-custom-provider"
+            class="flex min-h-8 w-full items-center gap-2 rounded-md py-1.5 ps-2 pe-2 text-left text-[13px] leading-5 tracking-[-0.04px] text-v2-text-text-accent hover:bg-v2-overlay-simple-overlay-hover focus:bg-v2-overlay-simple-overlay-hover focus:outline-none"
+            onClick={() =>
+              void dialog.show(() => (
+                <DialogEditProvider directory={props.directory} defaultLocation={props.directory === undefined} />
+              ))
+            }
+          >
+            <Icon name="plus" size="small" class="shrink-0" />
+            <span class="min-w-0 truncate font-[530]">{language.t("settings.providers.addCustom")}</span>
+          </button>
           <For each={groups()}>
             {(group) => (
               <Show when={group.items().length > 0}>

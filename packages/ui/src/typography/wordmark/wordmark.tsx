@@ -9,7 +9,7 @@ export function Wordmark(
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 720 129"
+      viewBox="0 0 270 42"
       fill="none"
       classList={{
         [props.class ?? ""]: !!props.class,
@@ -24,46 +24,32 @@ export function Wordmark(
             stroke={props.outline ? "currentColor" : undefined}
             stroke-width={props.outline ? 1 : undefined}
           >
-            <path
-              pathLength={props.outline ? 1 : undefined}
-              d="M55.3846 36.4286H18.4615V91.7143H55.3846V36.4286ZM73.8462 110.143H0V18H73.8462V110.143Z"
-            />
-            <path
-              pathLength={props.outline ? 1 : undefined}
-              d="M110.462 91.7143H147.385V36.4286H110.462V91.7143ZM165.846 110.143H110.462V128.571H92V18H165.846V110.143Z"
-            />
-            <path
-              pathLength={props.outline ? 1 : undefined}
-              d="M258.846 73.2857H203.462V91.7143H258.846V110.143H185V18H258.846V73.2857ZM203.462 54.8571H240.385V36.4286H203.462V54.8571Z"
-            />
-            <path
-              pathLength={props.outline ? 1 : undefined}
-              d="M332.385 36.4286H295.462V110.143H277V18H332.385V36.4286ZM350.846 110.143H332.385V36.4286H350.846V110.143Z"
-            />
-            <path
-              pathLength={props.outline ? 1 : undefined}
-              d="M442.846 36.4286H387.462V91.7143H442.846V110.143H369V18H442.846V36.4286Z"
-            />
-            <path
-              pathLength={props.outline ? 1 : undefined}
-              d="M517.385 36.4286H480.462V91.7143H517.385V36.4286ZM535.846 110.143H462V18H535.846V110.143Z"
-            />
-            <path
-              pathLength={props.outline ? 1 : undefined}
-              d="M609.385 36.8571H572.462V92.1429H609.385V36.8571ZM627.846 110.571H554V18.4286H609.385V0H627.846V110.571Z"
-            />
-            <path
-              pathLength={props.outline ? 1 : undefined}
-              d="M664.462 36.4286V54.8571H701.385V36.4286H664.462ZM719.846 73.2857H664.462V91.7143H719.846V110.143H646V18H719.846V73.2857Z"
-            />
+            {/* a */}
+            <path pathLength={props.outline ? 1 : undefined} d="M24 36H0V18H18V12H0V6H24V36ZM6 24V30H18V24H6Z" />
+            {/* h */}
+            <path pathLength={props.outline ? 1 : undefined} d="M36 0V12H54V36H48V18H36V36H30V0H36Z" />
+            {/* p */}
+            <path pathLength={props.outline ? 1 : undefined} d="M66 30H78V12H66V30ZM84 36H66V42H60V6H84V36Z" />
+            {/* a */}
+            <path pathLength={props.outline ? 1 : undefined} d="M114 36H90V18H108V12H90V6H114V36ZM96 24V30H108V24H96Z" />
+            {/* h */}
+            <path pathLength={props.outline ? 1 : undefined} d="M126 0V12H144V36H138V18H126V36H120V0H126Z" />
+            {/* c */}
+            <path pathLength={props.outline ? 1 : undefined} d="M180 12H162V30H180V36H156V6H180V12Z" />
+            {/* o */}
+            <path pathLength={props.outline ? 1 : undefined} d="M204 12H192V30H204V12ZM210 36H186V6H210V36Z" />
+            {/* d */}
+            <path pathLength={props.outline ? 1 : undefined} d="M234 12H222V30H234V12ZM240 36H216V6H234V0H240V36Z" />
+            {/* e */}
+            <path pathLength={props.outline ? 1 : undefined} d="M252 12V18H264V12H252ZM270 24H252V30H270V36H246V6H270V24Z" />
           </g>
         </g>
       </g>
       <defs>
-        <mask id={mask} style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="720" height="129">
-          <rect width="720" height="129" fill={`url(#${maskGradient})`} />
+        <mask id={mask} style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="270" height="42">
+          <rect width="270" height="42" fill={`url(#${maskGradient})`} />
         </mask>
-        <linearGradient id={maskGradient} x1="360" y1="68" x2="360" y2="129" gradientUnits="userSpaceOnUse">
+        <linearGradient id={maskGradient} x1="135" y1="22" x2="135" y2="42" gradientUnits="userSpaceOnUse">
           <stop stop-color="white" stop-opacity="0.7" />
           <stop offset="1" stop-color="white" stop-opacity="0" />
         </linearGradient>

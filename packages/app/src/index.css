@@ -411,4 +411,17 @@
     height: 24px;
     padding-block: 0;
   }
+
+  /* Subtle pixelated texture on empty-state canvases and crisp pixel rendering on wordmarks */
+  [data-component="new-session"],
+  [data-slot="home-panel"] {
+    background-image: radial-gradient(var(--v2-border-border-muted) 1px, transparent 1px);
+    background-size: 12px 12px;
+  }
+
+  [data-component="logo"],
+  [data-slot="pin-board-canvas"] {
+    image-rendering: pixelated;
+    shape-rendering: crispEdges;
+  }
 }

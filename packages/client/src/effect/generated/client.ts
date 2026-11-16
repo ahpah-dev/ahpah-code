@@ -316,6 +316,14 @@ import type {
   ConfigGetInput,
   ConfigGetOutput,
   ConfigShellsOutput,
+  ConfigFetchProviderModelsInput,
+  ConfigFetchProviderModelsOutput,
+  ConfigGetProviderInput,
+  ConfigGetProviderOutput,
+  ConfigSaveProviderInput,
+  ConfigSaveProviderOutput,
+  ConfigRemoveProviderInput,
+  ConfigRemoveProviderOutput,
   ExperimentalConfigUpdateInput,
   ExperimentalConfigUpdateOutput,
 } from "../api/api.js"
@@ -1947,9 +1955,61 @@ const EndpointConfigGet = (raw: RawClient["server.config"]) => (input?: ConfigGe
 const EndpointConfigShells = (raw: RawClient["server.config"]) => () =>
   preserveEffect<ConfigShellsOutput>()(raw["config.shells"]({}).pipe(Effect.mapError(mapClientError)))
 
+const EndpointConfigFetchProviderModels =
+  (raw: RawClient["server.config"]) => (input: ConfigFetchProviderModelsInput) =>
+    preserveEffect<ConfigFetchProviderModelsOutput>()(
+      raw["config.fetchProviderModels"]({
+        query: { location: input["location"] },
+        payload: {
+          providerID: input["providerID"],
+          baseURL: input["baseURL"],
+          apiKey: input["apiKey"],
+          package: input["package"],
+          headers: input["headers"],
+        },
+      }).pipe(Effect.mapError(mapClientError)),
+    )
+
+const EndpointConfigGetProvider = (raw: RawClient["server.config"]) => (input: ConfigGetProviderInput) =>
+  preserveEffect<ConfigGetProviderOutput>()(
+    raw["config.getProvider"]({
+      params: { providerID: input["providerID"] },
+      query: { location: input["location"] },
+    }).pipe(Effect.mapError(mapClientError)),
+  )
+
+const EndpointConfigSaveProvider = (raw: RawClient["server.config"]) => (input: ConfigSaveProviderInput) =>
+  preserveEffect<ConfigSaveProviderOutput>()(
+    raw["config.saveProvider"]({
+      params: { providerID: input["providerID"] },
+      query: { location: input["location"] },
+      payload: {
+        name: input["name"],
+        package: input["package"],
+        baseURL: input["baseURL"],
+        apiKey: input["apiKey"],
+        headers: input["headers"],
+        models: input["models"],
+        replaceModels: input["replaceModels"],
+      },
+    }).pipe(Effect.mapError(mapClientError)),
+  )
+
+const EndpointConfigRemoveProvider = (raw: RawClient["server.config"]) => (input: ConfigRemoveProviderInput) =>
+  preserveEffect<ConfigRemoveProviderOutput>()(
+    raw["config.removeProvider"]({
+      params: { providerID: input["providerID"] },
+      query: { location: input["location"] },
+    }).pipe(Effect.mapError(mapClientError)),
+  )
+
 const adaptGroupConfig = (raw: RawClient["server.config"]) => ({
   get: EndpointConfigGet(raw),
   shells: EndpointConfigShells(raw),
+  fetchProviderModels: EndpointConfigFetchProviderModels(raw),
+  getProvider: EndpointConfigGetProvider(raw),
+  saveProvider: EndpointConfigSaveProvider(raw),
+  removeProvider: EndpointConfigRemoveProvider(raw),
 })
 
 const EndpointExperimentalConfigUpdate = (raw: RawClient["server.config"]) => (input: ExperimentalConfigUpdateInput) =>

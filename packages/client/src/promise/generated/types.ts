@@ -382,6 +382,29 @@ export type ConfigModelReasoning =
 
 export type ConfigShellOption = { path: string; name: string; acceptable: boolean }
 
+export type ProviderFetchedModel = {
+  id: string
+  name?: string | undefined
+  ownedBy?: string | undefined
+  context?: number | undefined
+  output?: number | undefined
+  tools?: boolean | undefined
+  vision?: boolean | undefined
+  reasoning?: boolean | undefined
+}
+
+export type ProviderConfigModel = {
+  id: string
+  name?: string | undefined
+  modelID?: string | undefined
+  context?: number | undefined
+  output?: number | undefined
+  tools?: boolean | undefined
+  vision?: boolean | undefined
+  reasoning?: boolean | undefined
+  disabled?: boolean | undefined
+}
+
 export type LocationPublicRef = { directory: AbsolutePath }
 
 export type FileSystemWrite = { path: AbsolutePath }
@@ -998,6 +1021,20 @@ export type ConfigModelCapabilities = {
   output?: Array<string>
   temperature?: boolean
   reasoning?: ConfigModelReasoning
+}
+
+export type ProviderFetchModelsResponse = { endpoint: string; models: Array<ProviderFetchedModel> }
+
+export type ProviderConfigState = {
+  providerID: ProviderID
+  name: string
+  package: string
+  baseURL?: string | undefined
+  defaultBaseURL?: string | undefined
+  headers?: { [x: string]: string } | undefined
+  hasCredential: boolean
+  hasConfig: boolean
+  models: Array<ProviderConfigModel>
 }
 
 export type SessionMessageLocationSwitched = {
@@ -4905,6 +4942,57 @@ export type ConfigGetInput = { readonly location?: { readonly directory?: string
 export type ConfigGetOutput = Array<ConfigEntry>
 
 export type ConfigShellsOutput = Array<ConfigShellOption>
+
+export type ConfigFetchProviderModelsInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly providerID?: string | undefined
+  readonly baseURL: string
+  readonly apiKey?: string | undefined
+  readonly package?: string | undefined
+  readonly headers?: { readonly [x: string]: string } | undefined
+}
+
+export type ConfigFetchProviderModelsOutput = { location: LocationPublicRef; data: ProviderFetchModelsResponse }
+
+export type ConfigGetProviderInput = {
+  readonly providerID: string
+  readonly location?: { readonly directory?: string | undefined } | undefined
+}
+
+export type ConfigGetProviderOutput = { location: LocationPublicRef; data: ProviderConfigState }
+
+export type ConfigSaveProviderInput = {
+  readonly providerID: string
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly name?: string | undefined
+  readonly package?: string | undefined
+  readonly baseURL?: string | null | undefined
+  readonly apiKey?: string | null | undefined
+  readonly headers?: { readonly [x: string]: string } | null | undefined
+  readonly models?:
+    | ReadonlyArray<{
+        readonly id: string
+        readonly name?: string | undefined
+        readonly modelID?: string | undefined
+        readonly context?: number | undefined
+        readonly output?: number | undefined
+        readonly tools?: boolean | undefined
+        readonly vision?: boolean | undefined
+        readonly reasoning?: boolean | undefined
+        readonly disabled?: boolean | undefined
+      }>
+    | undefined
+  readonly replaceModels?: boolean | undefined
+}
+
+export type ConfigSaveProviderOutput = { location: LocationPublicRef; data: ProviderConfigState }
+
+export type ConfigRemoveProviderInput = {
+  readonly providerID: string
+  readonly location?: { readonly directory?: string | undefined } | undefined
+}
+
+export type ConfigRemoveProviderOutput = void
 
 export type ExperimentalConfigUpdateInput = { readonly shell: string | null }
 
